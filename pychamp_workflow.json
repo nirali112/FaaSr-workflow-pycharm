@@ -118,5 +118,5 @@
   "LoggingDataStore": "My_S3_Bucket",
   "FaaSrLog": "FaaSrLog",
   "InvocationID": "",
-  "WorkflowName": "pychamp_workflow"
+  "WorkflowName": "pychamp-workflow"
 }
