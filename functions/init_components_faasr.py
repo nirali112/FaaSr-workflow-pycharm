@@ -10,7 +10,6 @@ def init_components_faasr():
     print("[init_components_faasr] Starting initialization...")
     
     # Create initial state with all component data
-    # Using simple dictionaries instead of objects for cloud storage
     state = {
         "aquifer": {
             "unique_id": "aq1",
@@ -19,8 +18,8 @@ def init_components_faasr():
             "area": 100.0,
             "sy": 0.2,
             "init": {
-                "st": 30.0,  # Storage
-                "dwl": 0.0   # Drawdown
+                "st": 30.0,
+                "dwl": 0.0
             }
         },
         "field": {
@@ -93,7 +92,7 @@ def init_components_faasr():
     
     # Upload state to cloud storage
     faasr_put_file(
-        server_name="S3",
+        server_name="My_S3_Bucket",
         local_folder="",
         local_file="pychamp_state.json",
         remote_folder="pychamp-workflow",
