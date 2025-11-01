@@ -1,0 +1,39 @@
+{
+  "ActionList": {
+    "init": {
+      "FunctionName": "init_components_faasr",
+      "FaaSServer": "GH",
+      "Type": "Python",
+      "Arguments": {},
+      "InvokeNext": []
+    }
+  },
+  "ComputeServers": {
+    "GH": {
+      "FaaSType": "GitHubActions",
+      "UserName": "nirali112",
+      "UseSecretStore": true,
+      "ActionRepoName": "FaaSr-workflow-pycharm",
+      "Branch": "main"
+    }
+  },
+  "DataStores": {
+    "S3": {
+      "Endpoint": "https://play.min.io",
+      "Bucket": "faasr",
+      "Region": "us-east-1"
+    }
+  },
+  "ActionContainers": {
+    "init": "ghcr.io/faasr/github-actions-python:dev"
+  },
+  "FunctionInvoke": "init",
+  "DefaultDataStore": "S3",
+  "FunctionGitRepo": {
+    "init_components_faasr": "nirali112/FaaSr-workflow-pycharm"
+  },
+  "LoggingDataStore": "S3",
+  "FaaSrLog": "FaaSrLog",
+  "InvocationID": "pychamp_workflow",
+  "WorkflowName": "pychamp_workflow"
+}
