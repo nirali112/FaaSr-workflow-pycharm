@@ -23,7 +23,7 @@
         "input1": "sample1.csv",
         "output": "sum.csv"
       },
-      "InvokeNext": []
+      "InvokeNext": ["init"]
     },
     "init": {
       "FunctionName": "init_components_faasr",
