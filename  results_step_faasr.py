@@ -12,7 +12,7 @@ def results_step_faasr():
     # Download state
     print("[results_step_faasr] Downloading final state...")
     faasr_get_file(
-        server_name="My_S3_Bucket",
+        server_name="S3",
         remote_folder="pychamp-workflow",
         remote_file="state.json",
         local_folder="",
@@ -91,7 +91,7 @@ def results_step_faasr():
         json.dump(state, f, indent=2)
     
     faasr_put_file(
-        server_name="My_S3_Bucket",
+        server_name="S3",
         local_folder="",
         local_file="state.json",
         remote_folder="pychamp-workflow",

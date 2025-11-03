@@ -92,7 +92,7 @@ def init_components_faasr():
     
     # Upload state to cloud storage
     faasr_put_file(
-        server_name="My_S3_Bucket",
+        server_name="S3",
         local_folder="",
         local_file="pychamp_state.json",
         remote_folder="pychamp-workflow",

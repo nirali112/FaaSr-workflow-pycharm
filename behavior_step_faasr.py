@@ -12,7 +12,7 @@ def behavior_step_faasr():
     # Download state from cloud storage
     print("[behavior_step_faasr] Downloading state from cloud...")
     faasr_get_file(
-        server_name="My_S3_Bucket",
+        server_name="S3",
         remote_folder="pychamp-workflow",
         remote_file="state.json",
         local_folder="",
@@ -130,7 +130,7 @@ def behavior_step_faasr():
     
     # Upload updated state back to cloud storage
     faasr_put_file(
-        server_name="My_S3_Bucket",
+        server_name="S3",
         local_folder="",
         local_file="state.json",
         remote_folder="pychamp-workflow",
