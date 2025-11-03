@@ -84,43 +84,7 @@ def results_step_faasr():
     
     # Store results in state
     state["results"] = results
-    
-    # # Print comprehensive summary
-    # print(f"\n{'='*60}")
-    # print(f"PYCHAMP SIMULATION RESULTS SUMMARY")
-    # print(f"{'='*60}")
-    
-    # print(f"\n🌾 FIELD CONDITIONS:")
-    # print(f"  - Crop: {field['crop']}")
-    # print(f"  - Soil moisture: {field['soil_moisture']:.3f}")
-    # print(f"  - Yield: {field['init'].get('yield', 0.0):.2f} tons")
-    # print(f"  - Irrigation used: {field['init'].get('irr_used', 0.0):.1f} mm")
-    
-    # print(f"\n💧 AQUIFER STATUS:")
-    # print(f"  - Storage: {aquifer['init']['st']:.2f} m³")
-    # print(f"  - Drawdown: {aquifer['init']['dwl']:.2f} m")
-    # print(f"  - Area: {aquifer['area']:.1f} km²")
-    
-    # print(f"\n💰 ECONOMIC OUTCOMES:")
-    # print(f"  - Revenue: ${field['init'].get('revenue', 0.0):.2f}")
-    # print(f"  - Net profit: ${finance.get('net_profit', 0.0):.2f}")
-    # print(f"  - Profit margin: {finance.get('profit_margin', 0.0):.1f}%")
-    # print(f"  - Water productivity: ${finance.get('water_productivity', 0.0):.2f}/mm")
-    
-    # print(f"\n🧠 BEHAVIORAL INSIGHTS:")
-    # print(f"  - Decision: {decision.get('action', 'no_irrigation')}")
-    # print(f"  - CONSUMAT state: {decision.get('consumat_state', 'unknown')}")
-    # print(f"  - Satisfaction: {behavior.get('satisfaction', 0.7):.2f}")
-    # print(f"  - Uncertainty: {behavior.get('uncertainty', 0.3):.2f}")
-    # print(f"  - Optimal next irrigation: {behavior.get('optimal_irrigation', 0.0):.1f} mm")
-    
-    # print(f"\n🌱 SUSTAINABILITY ASSESSMENT:")
-    # print(f"  - Overall score: {sustainability_score:.1f}/1.0")
-    # print(f"  - Water availability: {results['sustainability']['water_availability']}")
-    # print(f"  - Soil health: {results['sustainability']['soil_health']}")
-    # print(f"  - Economic viability: {results['sustainability']['economic_viability']}")
-    
-    # print(f"\n{'='*60}")
+
     
     # Save final state
     with open("state.json", "w") as f:
@@ -135,4 +99,4 @@ def results_step_faasr():
     )
     
     print("[results_step_faasr] Results step complete!")
-    print("[results_step_faasr] ✅ Full workflow executed successfully!")
+    print("[results_step_faasr] Full workflow executed successfully!")

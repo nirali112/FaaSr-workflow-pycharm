@@ -9,62 +9,62 @@
       "InvokeNext": [
         "init"
       ],
-      "FaaSServer": "My_GitHub_Account",
+      "FaaSServer": "GH",
       "Type": "R",
       "FunctionName": "create_sample_data"
     },
     "init": {
       "FunctionName": "init_components_faasr",
-      "FaaSServer": "My_GitHub_Account",
+      "FaaSServer": "GH",
       "Type": "Python",
       "Arguments": {},
       "InvokeNext": ["behavior"]
     },
     "behavior": {
       "FunctionName": "behavior_step_faasr",
-      "FaaSServer": "My_GitHub_Account",
+      "FaaSServer": "GH",
       "Type": "Python",
       "Arguments": {},
       "InvokeNext": ["field"]
     },
      "field": {
       "FunctionName": "field_step_faasr",
-      "FaaSServer": "My_GitHub_Account",
+      "FaaSServer": "GH",
       "Type": "Python",
       "Arguments": {},
       "InvokeNext": ["aquifer"]
     },
     "aquifer": {
       "FunctionName": "aquifer_step_faasr",
-      "FaaSServer": "My_GitHub_Account",
+      "FaaSServer": "GH",
       "Type": "Python",
       "Arguments": {},
       "InvokeNext": ["finance"]
     },
     "finance": {
       "FunctionName": "finance_step_faasr",
-      "FaaSServer": "My_GitHub_Account",
+      "FaaSServer": "GH",
       "Type": "Python",
       "Arguments": {},
       "InvokeNext": ["optimization"]
     },
     "optimization": {
       "FunctionName": "optimization_step_faasr",
-      "FaaSServer": "My_GitHub_Account",
+      "FaaSServer": "GH",
       "Type": "Python",
       "Arguments": {},
       "InvokeNext": ["results"]
     },
     "results": {
       "FunctionName": "results_step_faasr",
-      "FaaSServer": "My_GitHub_Account",
+      "FaaSServer": "GH",
       "Type": "Python",
       "Arguments": {},
       "InvokeNext": []
     }
   },
   "ComputeServers": {
-    "My_GitHub_Account": {
+    "GH": {
       "FaaSType": "GitHubActions",
       "UserName": "nirali112",
       "UseSecretStore": true,
@@ -73,7 +73,7 @@
     }
   },
   "DataStores": {
-    "My_S3_Bucket": {
+    "S3": {
       "Endpoint": "https://play.min.io",
       "Bucket": "faasr",
       "Region": "us-east-1"
@@ -90,7 +90,7 @@
     "results": "ghcr.io/faasr/github-actions-python:latest"
   },
   "FunctionInvoke": "start",
-  "DefaultDataStore": "My_S3_Bucket",
+  "DefaultDataStore": "S3",
   "FunctionGitRepo": {
     "create_sample_data": "FaaSr/FaaSr-tutorial",
     "init_components_faasr": "nirali112/FaaSr-workflow-pycharm",
@@ -101,7 +101,7 @@
     "optimization_step_faasr": "nirali112/FaaSr-workflow-pycharm",
     "results_step_faasr": "nirali112/FaaSr-workflow-pycharm"
   },
-  "LoggingDataStore": "My_S3_Bucket",
+  "LoggingDataStore": "S3",
   "FaaSrLog": "FaaSrLog",
   "InvocationID": "",
   "WorkflowName": "pychamp-workflow"
