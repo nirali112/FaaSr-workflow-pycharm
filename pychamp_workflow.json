@@ -25,41 +25,6 @@
       "FaaSServer": "My_GitHub_Account",
       "Type": "Python",
       "Arguments": {},
-      "InvokeNext": ["field"]
-    },
-    "field": {
-      "FunctionName": "field_step_faasr",
-      "FaaSServer": "My_GitHub_Account",
-      "Type": "Python",
-      "Arguments": {},
-      "InvokeNext": ["aquifer"]
-    },
-    "aquifer": {
-      "FunctionName": "aquifer_step_faasr",
-      "FaaSServer": "My_GitHub_Account",
-      "Type": "Python",
-      "Arguments": {},
-      "InvokeNext": ["finance"]
-    },
-    "finance": {
-      "FunctionName": "finance_step_faasr",
-      "FaaSServer": "My_GitHub_Account",
-      "Type": "Python",
-      "Arguments": {},
-      "InvokeNext": ["optimization"]
-    },
-    "optimization": {
-      "FunctionName": "optimization_step_faasr",
-      "FaaSServer": "My_GitHub_Account",
-      "Type": "Python",
-      "Arguments": {},
-      "InvokeNext": ["results"]
-    },
-    "results": {
-      "FunctionName": "results_step_faasr",
-      "FaaSServer": "My_GitHub_Account",
-      "Type": "Python",
-      "Arguments": {},
       "InvokeNext": []
     }
   },
@@ -82,24 +47,14 @@
   "ActionContainers": {
     "start": "ghcr.io/faasr/github-actions-r:latest",
     "init": "ghcr.io/faasr/github-actions-python:latest",
-    "behavior": "ghcr.io/faasr/github-actions-python:latest",
-    "field": "ghcr.io/faasr/github-actions-python:latest",
-    "aquifer": "ghcr.io/faasr/github-actions-python:latest",
-    "finance": "ghcr.io/faasr/github-actions-python:latest",
-    "optimization": "ghcr.io/faasr/github-actions-python:latest",
-    "results": "ghcr.io/faasr/github-actions-python:latest"
+    "behavior": "ghcr.io/faasr/github-actions-python:latest"
   },
   "FunctionInvoke": "start",
   "DefaultDataStore": "My_S3_Bucket",
   "FunctionGitRepo": {
     "create_sample_data": "FaaSr/FaaSr-tutorial",
     "init_components_faasr": "nirali112/FaaSr-workflow-pycharm",
-    "behavior_step_faasr": "nirali112/FaaSr-workflow-pycharm",
-    "field_step_faasr": "nirali112/FaaSr-workflow-pycharm",
-    "aquifer_step_faasr": "nirali112/FaaSr-workflow-pycharm",
-    "finance_step_faasr": "nirali112/FaaSr-workflow-pycharm",
-    "optimization_step_faasr": "nirali112/FaaSr-workflow-pycharm",
-    "results_step_faasr": "nirali112/FaaSr-workflow-pycharm"
+    "behavior_step_faasr": "nirali112/FaaSr-workflow-pycharm"
   },
   "LoggingDataStore": "My_S3_Bucket",
   "FaaSrLog": "FaaSrLog",
