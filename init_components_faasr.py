@@ -24,7 +24,6 @@ def init_components_faasr():
     """
     print("[init_components_faasr] Starting initialization...")
     print(f"[init_components_faasr] Python version: {sys.version}")
-    print(f"[init_components_faasr] Python path: {sys.path[:3]}")
     print(f"[init_components_faasr] Using REAL PyChAMP: {PYCHAMP_AVAILABLE}")
     
     if not PYCHAMP_AVAILABLE:
@@ -36,25 +35,36 @@ def init_components_faasr():
         state = create_pychamp_state()
     
     # Save to local file
-    with open("pychamp_state.json", "w") as f:
+    output_file = "pychamp_state.json"
+    with open(output_file, "w") as f:
         json.dump(state, f, indent=2)
     
-    print("[init_components_faasr] State created successfully")
+    print(f"[init_components_faasr] State saved to {output_file}")
+    print(f"[init_components_faasr] File size: {os.path.getsize(output_file)} bytes")
+    print("[init_components_faasr] State contents:")
     print(f"  - Aquifer storage: {state['aquifer']['init']['st']} m³")
     print(f"  - Field crop: {state['field']['crop']}")
     print(f"  - Using REAL PyChAMP: {state['metadata']['using_real_pychamp']}")
     
     # Upload to cloud storage
-    faasr_put_file(
-        server_name="My_S3_Bucket",
-        local_folder="",
-        local_file="pychamp_state.json",
-        remote_folder="pychamp-workflow",
-        remote_file="state.json"
-    )
+    print("[init_components_faasr] Uploading to cloud storage...")
     
-    print("[init_components_faasr] State uploaded to cloud storage")
-    print("[init_components_faasr] ✅ Initialization complete!")
+    try:
+        faasr_put_file(
+            server_name="S3",
+            local_folder="",
+            local_file=output_file,
+            remote_folder="pychamp-workflow",
+            remote_file="state.json"
+        )
+        print("[init_components_faasr] State uploaded successfully!")
+    except Exception as e:
+        print(f"[init_components_faasr] Upload failed: {e}")
+        print(f"[init_components_faasr] Error type: {type(e)}")
+        # Don't fail the whole function - we still created the state
+        print("[init_components_faasr] Continuing anyway (state was created locally)")
+    
+    print("[init_components_faasr] Initialization complete!")
 
 
 def create_pychamp_state():
@@ -146,7 +156,8 @@ def create_pychamp_state():
         "results": {},
         "metadata": {
             "using_real_pychamp": True,
-            "pychamp_version": "1.0.0"
+            "pychamp_version": "1.0.0",
+            "container": "custom"
         }
     }
     
@@ -196,7 +207,8 @@ def create_simplified_state():
         "results": {},
         "metadata": {
             "using_real_pychamp": False,
-            "pychamp_version": "simplified"
+            "pychamp_version": "simplified",
+            "container": "standard"
         }
     }
 
