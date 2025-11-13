@@ -21,53 +21,49 @@ def init_components_faasr():
     
     model = MinimalModel()
     
-    aquifer = Aquifer(
-        unique_id="aq1",
-        model=model,
-        aq_a=0.1,
-        aq_b=10.0,
-        area=100.0,
-        sy=0.2,
-        init={"st": 30.0, "dwl": 0.0}
-    )
+    aquifer_settings = {
+        "aq_a": 0.1,
+        "aq_b": 10.0,
+        "area": 100.0,
+        "sy": 0.2,
+        "init": {"st": 30.0, "dwl": 0.0}
+    }
+    aquifer = Aquifer("aq1", model, aquifer_settings)
     
-    field = Field(
-        unique_id="f1",
-        model=model,
-        crop="corn",
-        field_area=50.0,
-        soil_moisture=0.5,
-        tech_pumping_rate_coefs=[0.8, 1.2],
-        water_yield_curves={
+    field_settings = {
+        "crop": "corn",
+        "field_area": 50.0,
+        "soil_moisture": 0.5,
+        "tech_pumping_rate_coefs": [0.8, 1.2],
+        "water_yield_curves": {
             "corn": [[0.0, 0.0, 0.0], [100.0, 1.0, 0.8]],
             "wheat": [[0.0, 0.0, 0.0], [90.0, 0.9, 0.75]],
             "soybean": [[0.0, 0.0, 0.0], [80.0, 0.85, 0.7]]
         },
-        prec_aw_id="default",
-        irrigation_policy="fixed",
-        irrigation_application=30.0,
-        irrigation_status=True,
-        irrigation_system="center_pivot",
-        tech_index=0,
-        aw_dp=0.1,
-        aw_runoff=0.05,
-        init={"yield": 0.0, "revenue": 0.0, "profit": 0.0, "irr_alloc": 0.0, "irr_used": 0.0, "tech": 0}
-    )
+        "prec_aw_id": "default",
+        "irrigation_policy": "fixed",
+        "irrigation_application": 30.0,
+        "irrigation_status": True,
+        "irrigation_system": "center_pivot",
+        "tech_index": 0,
+        "aw_dp": 0.1,
+        "aw_runoff": 0.05,
+        "init": {"yield": 0.0, "revenue": 0.0, "profit": 0.0, "irr_alloc": 0.0, "irr_used": 0.0, "tech": 0}
+    }
+    field = Field("f1", model, field_settings)
     
-    well = Well(
-        unique_id="w1",
-        model=model,
-        efficiency=0.75,
-        max_capacity=100.0,
-        pumping_cost_per_m3=0.05
-    )
+    well_settings = {
+        "efficiency": 0.75,
+        "max_capacity": 100.0,
+        "pumping_cost_per_m3": 0.05
+    }
+    well = Well("w1", model, well_settings)
     
-    finance = Finance(
-        unique_id="fin1",
-        model=model,
-        crop_price=4.0,
-        cost=1.5
-    )
+    finance_settings = {
+        "crop_price": 4.0,
+        "cost": 1.5
+    }
+    finance = Finance("fin1", model, finance_settings)
     
     state = {
         "aquifer": {
