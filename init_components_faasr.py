@@ -36,9 +36,9 @@ def init_components_faasr():
         "soil_moisture": 0.5,
         "tech_pumping_rate_coefs": [0.8, 1.2],
         "water_yield_curves": {
-            "corn": [[0.0, 0.0, 0.0], [100.0, 1.0, 0.8]],
-            "wheat": [[0.0, 0.0, 0.0], [90.0, 0.9, 0.75]],
-            "soybean": [[0.0, 0.0, 0.0], [80.0, 0.85, 0.7]]
+            "corn": [[0.0, 0.0], [100.0, 1.0]],
+            "wheat": [[0.0, 0.0], [90.0, 0.9]],
+            "soybean": [[0.0, 0.0], [80.0, 0.85]]
         },
         "prec_aw_id": "default",
         "irrigation_policy": "fixed",
