@@ -7,7 +7,6 @@ def init_components_faasr():
     subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "git+https://github.com/philip928lin/PyCHAMP.git"])
     
     from py_champ.components.aquifer import Aquifer
-    from py_champ.components.field import Field
     from py_champ.components.well import Well
     from py_champ.components.finance import Finance
     import numpy as np
@@ -30,32 +29,6 @@ def init_components_faasr():
         "init": {"st": 30.0, "dwl": 0.0}
     }
     aquifer = Aquifer("aq1", model, aquifer_settings)
-    
-    corn_curve = np.array([[0, 20, 40, 60, 80, 100], [0, 0.4, 0.7, 0.9, 1.0, 1.0]])
-    wheat_curve = np.array([[0, 15, 30, 45, 60, 90], [0, 0.3, 0.6, 0.8, 0.9, 0.9]])
-    soybean_curve = np.array([[0, 15, 30, 45, 60, 80], [0, 0.35, 0.65, 0.8, 0.85, 0.85]])
-    
-    field_settings = {
-        "crop": "corn",
-        "field_area": 50.0,
-        "soil_moisture": 0.5,
-        "tech_pumping_rate_coefs": np.array([0.8, 1.2]),
-        "water_yield_curves": {
-            "corn": corn_curve,
-            "wheat": wheat_curve,
-            "soybean": soybean_curve
-        },
-        "prec_aw_id": "default",
-        "irrigation_policy": "fixed",
-        "irrigation_application": 30.0,
-        "irrigation_status": True,
-        "irrigation_system": "center_pivot",
-        "tech_index": 0,
-        "aw_dp": 0.1,
-        "aw_runoff": 0.05,
-        "init": {"yield": 0.0, "revenue": 0.0, "profit": 0.0, "irr_alloc": 0.0, "irr_used": 0.0, "tech": 0}
-    }
-    field = Field("f1", model, field_settings)
     
     well_settings = {
         "efficiency": 0.75,
@@ -80,32 +53,25 @@ def init_components_faasr():
             "init": {"st": aquifer.init["st"], "dwl": aquifer.init["dwl"]}
         },
         "field": {
-            "unique_id": field.unique_id,
-            "crop": field.crop,
-            "field_area": field.field_area,
-            "soil_moisture": field.soil_moisture,
-            "tech_pumping_rate_coefs": field.tech_pumping_rate_coefs.tolist(),
+            "unique_id": "f1",
+            "crop": "corn",
+            "field_area": 50.0,
+            "soil_moisture": 0.5,
+            "tech_pumping_rate_coefs": [0.8, 1.2],
             "water_yield_curves": {
-                "corn": corn_curve.tolist(),
-                "wheat": wheat_curve.tolist(),
-                "soybean": soybean_curve.tolist()
+                "corn": [[0, 20, 40, 60, 80, 100], [0, 0.4, 0.7, 0.9, 1.0, 1.0]],
+                "wheat": [[0, 15, 30, 45, 60, 90], [0, 0.3, 0.6, 0.8, 0.9, 0.9]],
+                "soybean": [[0, 15, 30, 45, 60, 80], [0, 0.35, 0.65, 0.8, 0.85, 0.85]]
             },
-            "prec_aw_id": field.prec_aw_id,
-            "irrigation_policy": field.irrigation_policy,
-            "irrigation_application": field.irrigation_application,
-            "irrigation_status": field.irrigation_status,
-            "irrigation_system": field.irrigation_system,
-            "tech_index": field.tech_index,
-            "aw_dp": field.aw_dp,
-            "aw_runoff": field.aw_runoff,
-            "init": {
-                "yield": field.init.get("yield", 0.0),
-                "revenue": field.init.get("revenue", 0.0),
-                "profit": field.init.get("profit", 0.0),
-                "irr_alloc": field.init.get("irr_alloc", 0.0),
-                "irr_used": field.init.get("irr_used", 0.0),
-                "tech": field.init.get("tech", 0)
-            }
+            "prec_aw_id": "default",
+            "irrigation_policy": "fixed",
+            "irrigation_application": 30.0,
+            "irrigation_status": True,
+            "irrigation_system": "center_pivot",
+            "tech_index": 0,
+            "aw_dp": 0.1,
+            "aw_runoff": 0.05,
+            "init": {"yield": 0.0, "revenue": 0.0, "profit": 0.0, "irr_alloc": 0.0, "irr_used": 0.0, "tech": 0}
         },
         "well": {
             "unique_id": well.unique_id,
@@ -133,7 +99,9 @@ def init_components_faasr():
         "pumping_cost": 0.0,
         "results": {},
         "metadata": {
-            "using_real_pychamp": True
+            "using_real_pychamp": True,
+            "pychamp_components_used": ["Aquifer", "Well", "Finance"],
+            "field_serialized_only": True
         }
     }
     
