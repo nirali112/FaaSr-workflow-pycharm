@@ -16,6 +16,9 @@ def init_components_faasr():
         def __init__(self):
             self.schedule = None
             self.running = True
+            self.crop_options = ["corn", "wheat", "soybean"]
+            self.area_split = [1.0]
+            self.tech_options = [{"name": "center_pivot", "efficiency": 0.75}]
     
     model = MinimalModel()
     
