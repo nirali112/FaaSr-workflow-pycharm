@@ -10,14 +10,12 @@ def init_components_faasr():
     from py_champ.components.field import Field
     from py_champ.components.well import Well
     from py_champ.components.finance import Finance
+    import numpy as np
     
     class MinimalModel:
         def __init__(self):
             self.schedule = None
             self.running = True
-            self.crop_options = ["corn", "wheat", "soybean"]
-            self.area_split = [1.0]
-            self.tech_options = [{"name": "center_pivot", "efficiency": 0.75}]
     
     model = MinimalModel()
     
@@ -30,15 +28,19 @@ def init_components_faasr():
     }
     aquifer = Aquifer("aq1", model, aquifer_settings)
     
+    corn_curve = np.array([[0, 20, 40, 60, 80, 100], [0, 0.4, 0.7, 0.9, 1.0, 1.0]])
+    wheat_curve = np.array([[0, 15, 30, 45, 60, 90], [0, 0.3, 0.6, 0.8, 0.9, 0.9]])
+    soybean_curve = np.array([[0, 15, 30, 45, 60, 80], [0, 0.35, 0.65, 0.8, 0.85, 0.85]])
+    
     field_settings = {
         "crop": "corn",
         "field_area": 50.0,
         "soil_moisture": 0.5,
-        "tech_pumping_rate_coefs": [0.8, 1.2],
+        "tech_pumping_rate_coefs": np.array([0.8, 1.2]),
         "water_yield_curves": {
-            "corn": [[0.0, 0.0], [100.0, 1.0]],
-            "wheat": [[0.0, 0.0], [90.0, 0.9]],
-            "soybean": [[0.0, 0.0], [80.0, 0.85]]
+            "corn": corn_curve,
+            "wheat": wheat_curve,
+            "soybean": soybean_curve
         },
         "prec_aw_id": "default",
         "irrigation_policy": "fixed",
@@ -79,8 +81,12 @@ def init_components_faasr():
             "crop": field.crop,
             "field_area": field.field_area,
             "soil_moisture": field.soil_moisture,
-            "tech_pumping_rate_coefs": field.tech_pumping_rate_coefs,
-            "water_yield_curves": field.water_yield_curves,
+            "tech_pumping_rate_coefs": field.tech_pumping_rate_coefs.tolist(),
+            "water_yield_curves": {
+                "corn": corn_curve.tolist(),
+                "wheat": wheat_curve.tolist(),
+                "soybean": soybean_curve.tolist()
+            },
             "prec_aw_id": field.prec_aw_id,
             "irrigation_policy": field.irrigation_policy,
             "irrigation_application": field.irrigation_application,
