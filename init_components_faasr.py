@@ -21,8 +21,15 @@ def install_dependencies():
     ])
     print("✅ Dependencies installed")
 
-def init_components_faasr(faasr_data):
-    """Initialize PyChAMP components"""
+def init_components_faasr():
+    """Initialize PyChAMP components - FaaSr entry point"""
+    
+    # Read FaaSr input (if exists from previous workflow)
+    try:
+        with open("faasr_data.json", "r") as f:
+            faasr_data = json.load(f)
+    except FileNotFoundError:
+        faasr_data = {}  # First run, no previous data
     
     install_dependencies()
     
@@ -187,24 +194,20 @@ def init_components_faasr(faasr_data):
     
     # Save state for next FaaSr action
     faasr_data["state"] = state
+    
+    # Write output for next step
+    with open("faasr_output.json", "w") as f:
+        json.dump(faasr_data, f, indent=2)
+    
+    print("\n✅ State saved to faasr_output.json")
+    
     return faasr_data
 
 # FaaSr entry point
 if __name__ == "__main__":
     try:
-        # Read FaaSr input
-        with open("faasr_data.json", "r") as f:
-            faasr_data = json.load(f)
-        
-        # Execute workflow step
-        result = init_components_faasr(faasr_data)
-        
-        # Write output for next step
-        with open("faasr_output.json", "w") as f:
-            json.dump(result, f, indent=2)
-        
+        result = init_components_faasr()
         print("\n✅ FaaSr step completed successfully")
-        
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback
