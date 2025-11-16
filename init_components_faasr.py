@@ -1,26 +1,54 @@
-import json
+"""
+FaaSr Step 1: Initialize PyChAMP Components
+This script initializes Aquifer, Well, Finance, and Field components
+and saves the state for the next workflow step.
+"""
+
 import sys
+import json
 import subprocess
 
-def init_components_faasr():
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "numpy", "pandas", "mesa==2.1.1"])
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "git+https://github.com/philip928lin/PyCHAMP.git"])
+def install_dependencies():
+    """Install required packages in FaaSr container"""
+    print("Installing dependencies...")
+    subprocess.check_call([
+        sys.executable, "-m", "pip", "install", "-q",
+        "numpy", "pandas", "mesa==2.1.1"
+    ])
+    subprocess.check_call([
+        sys.executable, "-m", "pip", "install", "-q",
+        "git+https://github.com/philip928lin/PyCHAMP.git"
+    ])
+    print("✅ Dependencies installed")
+
+def init_components_faasr(faasr_data):
+    """Initialize PyChAMP components"""
     
+    install_dependencies()
+    
+    # Import after installation
+    from mesa import Model
+    from mesa.time import RandomActivation
     from py_champ.components.aquifer import Aquifer
     from py_champ.components.well import Well
     from py_champ.components.finance import Finance
-    import numpy as np
+    from py_champ.components.field import Field
     
-    class MinimalModel:
-        def __init__(self):
-            self.schedule = None
-            self.running = True
-            self.crop_options = ["corn", "wheat", "soybean"]
-            self.area_split = [1.0]
-            self.tech_options = [{"name": "center_pivot", "efficiency": 0.75}]
+    print("\n" + "=" * 60)
+    print("Initializing PyChAMP Components in FaaSr")
+    print("=" * 60)
     
-    model = MinimalModel()
+    # 1. Create Mesa model
+    print("\n1. Creating model...")
+    model = Model()
+    model.schedule = RandomActivation(model)
+    model.current_step = 0
+    model.crop_options = ["corn", "soy", "wheat"]
+    model.area_split = 4
+    print(f"   ✅ Model created")
     
+    # 2. Initialize Aquifer
+    print("\n2. Initializing Aquifer...")
     aquifer_settings = {
         "aq_a": 0.1,
         "aq_b": 10.0,
@@ -29,89 +57,156 @@ def init_components_faasr():
         "init": {"st": 30.0, "dwl": 0.0}
     }
     aquifer = Aquifer("aq1", model, aquifer_settings)
+    model.schedule.add(aquifer)
+    print(f"   ✅ Aquifer initialized: st={aquifer.st}m")
     
+    # 3. Initialize Well
+    print("\n3. Initializing Well...")
     well_settings = {
-        "efficiency": 0.75,
-        "max_capacity": 100.0,
-        "pumping_cost_per_m3": 0.05
+        "r": 0.2032,
+        "k": 15.0,
+        "sy": 0.2,
+        "rho": 1000.0,
+        "g": 9.81,
+        "eff_pump": 0.75,
+        "eff_well": 0.85,
+        "aquifer_id": "aq1",
+        "pumping_capacity": 100.0,
+        "init": {
+            "st": 30.0,
+            "l_wt": 5.0,
+            "pumping_days": 90
+        }
     }
     well = Well("w1", model, well_settings)
+    model.schedule.add(well)
+    print(f"   ✅ Well initialized: connected to {well.aquifer_id}")
     
+    # 4. Initialize Finance
+    print("\n4. Initializing Finance...")
     finance_settings = {
-        "crop_price": 4.0,
-        "cost": 1.5
+        "energy_price": 0.12,
+        "crop_price": {
+            "corn": 5.0,
+            "soy": 10.0,
+            "wheat": 3.0
+        },
+        "crop_cost": {
+            "corn": 400.0,
+            "soy": 300.0,
+            "wheat": 250.0
+        },
+        "irr_tech_operational_cost": {
+            "gravity": 50.0,
+            "sprinkler": 100.0,
+            "drip": 150.0
+        },
+        "irr_tech_change_cost": {
+            "gravity": 1000.0,
+            "sprinkler": 2000.0,
+            "drip": 3000.0
+        },
+        "crop_change_cost": 200.0,
+        "init": {"savings": 10000.0}
     }
     finance = Finance("fin1", model, finance_settings)
+    model.schedule.add(finance)
+    print(f"   ✅ Finance initialized: energy_price=${finance.energy_price}/kWh")
     
-    state = {
-        "aquifer": {
-            "unique_id": aquifer.unique_id,
-            "aq_a": aquifer.aq_a,
-            "aq_b": aquifer.aq_b,
-            "area": aquifer.area,
-            "sy": aquifer.sy,
-            "init": {"st": aquifer.init["st"], "dwl": aquifer.init["dwl"]}
+    # 5. Initialize Field
+    print("\n5. Initializing Field...")
+    field_settings = {
+        "field_area": 100.0,
+        "water_yield_curves": {
+            "corn": [10.0, 600.0, 0.5, 1.0, 0.3, 0.2],
+            "soy": [4.0, 400.0, 0.6, 1.2, 0.25, 0.15],
+            "wheat": [5.0, 350.0, 0.55, 1.1, 0.28, 0.18]
         },
-        "field": {
-            "unique_id": "f1",
+        "tech_pumping_rate_coefs": {
+            "gravity": [1.0, 0.5, 10.0],
+            "sprinkler": [0.85, 0.6, 15.0],
+            "drip": [0.70, 0.7, 20.0]
+        },
+        "prec_aw_id": "aq1",
+        "init": {
             "crop": "corn",
-            "field_area": 50.0,
-            "soil_moisture": 0.5,
-            "tech_pumping_rate_coefs": [0.8, 1.2],
-            "water_yield_curves": {
-                "corn": [[0, 20, 40, 60, 80, 100], [0, 0.4, 0.7, 0.9, 1.0, 1.0]],
-                "wheat": [[0, 15, 30, 45, 60, 90], [0, 0.3, 0.6, 0.8, 0.9, 0.9]],
-                "soybean": [[0, 15, 30, 45, 60, 80], [0, 0.35, 0.65, 0.8, 0.85, 0.85]]
+            "tech": "sprinkler",
+            "field_type": "irrigated"
+        }
+    }
+    field = Field("f1", model, field_settings)
+    model.schedule.add(field)
+    print(f"   ✅ Field initialized: area={field.field_area}ha, crop={field.crops[0]}")
+    
+    # 6. Create state for next workflow step
+    print("\n6. Creating state...")
+    state = {
+        "workflow_step": "init_components",
+        "status": "completed",
+        "model_step": model.current_step,
+        "components": {
+            "aquifer": {
+                "id": aquifer.unique_id,
+                "st": aquifer.st,
+                "dwl": aquifer.dwl,
+                "area": aquifer.area
             },
-            "prec_aw_id": "default",
-            "irrigation_policy": "fixed",
-            "irrigation_application": 30.0,
-            "irrigation_status": True,
-            "irrigation_system": "center_pivot",
-            "tech_index": 0,
-            "aw_dp": 0.1,
-            "aw_runoff": 0.05,
-            "init": {"yield": 0.0, "revenue": 0.0, "profit": 0.0, "irr_alloc": 0.0, "irr_used": 0.0, "tech": 0}
+            "well": {
+                "id": well.unique_id,
+                "aquifer_id": well.aquifer_id,
+                "pumping_capacity": well.pumping_capacity,
+                "eff_pump": well.eff_pump,
+                "st": well.st,
+                "pumping_days": well.pumping_days
+            },
+            "finance": {
+                "id": finance.unique_id,
+                "energy_price": finance.energy_price,
+                "crop_price": finance.crop_price,
+                "crop_cost": finance.crop_cost
+            },
+            "field": {
+                "id": field.unique_id,
+                "field_area": field.field_area,
+                "crops": field.crops,
+                "tech": field.te
+            }
         },
-        "well": {
-            "unique_id": well.unique_id,
-            "efficiency": well.efficiency,
-            "max_capacity": well.max_capacity,
-            "pumping_cost_per_m3": well.pumping_cost_per_m3
-        },
-        "finance": {
-            "unique_id": finance.unique_id,
-            "crop_price": finance.crop_price,
-            "cost": finance.cost,
-            "net_profit": 0.0,
-            "total_costs": 0.0,
-            "profit_margin": 0.0,
-            "water_productivity": 0.0
-        },
-        "behavior": {
-            "unique_id": "b1",
-            "satisfaction": 0.7,
-            "uncertainty": 0.3,
-            "satisfaction_threshold": 0.7,
-            "uncertainty_threshold": 0.3
-        },
-        "decision": {},
-        "pumping_cost": 0.0,
-        "results": {},
-        "metadata": {
-            "using_real_pychamp": True,
-            "pychamp_components_used": ["Aquifer", "Well", "Finance"],
-            "field_serialized_only": True
+        "settings": {
+            "aquifer": aquifer_settings,
+            "well": well_settings,
+            "finance": finance_settings,
+            "field": field_settings
         }
     }
     
-    with open("pychamp_state.json", "w") as f:
-        json.dump(state, f, indent=2)
+    print("\n" + "=" * 60)
+    print("✅ ALL COMPONENTS INITIALIZED SUCCESSFULLY")
+    print("=" * 60)
+    print(f"Components: {list(state['components'].keys())}")
     
-    faasr_put_file(
-        server_name="S3",
-        local_folder="",
-        local_file="pychamp_state.json",
-        remote_folder="pychamp-workflow",
-        remote_file="state.json"
-    )
+    # Save state for next FaaSr action
+    faasr_data["state"] = state
+    return faasr_data
+
+# FaaSr entry point
+if __name__ == "__main__":
+    try:
+        # Read FaaSr input
+        with open("faasr_data.json", "r") as f:
+            faasr_data = json.load(f)
+        
+        # Execute workflow step
+        result = init_components_faasr(faasr_data)
+        
+        # Write output for next step
+        with open("faasr_output.json", "w") as f:
+            json.dump(result, f, indent=2)
+        
+        print("\n✅ FaaSr step completed successfully")
+        
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
