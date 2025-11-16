@@ -201,15 +201,16 @@ def init_components_faasr():
     
     print("\n✅ State saved to faasr_output.json")
     
-    return faasr_data
+    # Return simple success message for FaaSr
+    return "SUCCESS"
 
 # FaaSr entry point
 if __name__ == "__main__":
     try:
         result = init_components_faasr()
-        print("\n✅ FaaSr step completed successfully")
+        print(f"\n✅ FaaSr step completed: {result}")
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback
         traceback.print_exc()
-        sys.exit(1)
+        raise
