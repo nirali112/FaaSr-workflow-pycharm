@@ -204,7 +204,7 @@ def init_components_faasr():
     # Return simple success message for FaaSr
     return "SUCCESS"
 
-# FaaSr entry point
-if __name__ == "__main__":
-        result = init_components_faasr()
-        print(f"\n✅ FaaSr step completed: {result}")
+# # FaaSr entry point
+# if __name__ == "__main__":
+#         result = init_components_faasr()
+#         print(f"\n✅ FaaSr step completed: {result}")
