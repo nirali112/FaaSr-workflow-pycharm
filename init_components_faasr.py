@@ -202,9 +202,9 @@ def init_components_faasr():
     print("\n✅ State saved to faasr_output.json")
     
     # Return simple success message for FaaSr
-    return "SUCCESS"
+    # return "SUCCESS"
 
 # # FaaSr entry point
-# if __name__ == "__main__":
-#         result = init_components_faasr()
+if __name__ == "__main__":
+        result = init_components_faasr()
 #         print(f"\n✅ FaaSr step completed: {result}")
