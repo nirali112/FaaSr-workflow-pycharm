@@ -206,11 +206,5 @@ def init_components_faasr():
 
 # FaaSr entry point
 if __name__ == "__main__":
-    try:
         result = init_components_faasr()
         print(f"\n✅ FaaSr step completed: {result}")
-    except Exception as e:
-        print(f"\n❌ Error: {e}")
-        import traceback
-        traceback.print_exc()
-        raise
