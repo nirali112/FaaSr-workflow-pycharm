@@ -1,32 +1,48 @@
-"""
-Local test for PyChAMP - ALL 5 COMPONENTS
-Tests: Aquifer, Well, Finance, Field, Behavior
-"""
+import sys
+import json
+import subprocess
 
-from mesa import Model
-from mesa.time import RandomActivation
-import numpy as np
+def install_dependencies():
+    """Install required packages in FaaSr container"""
+    print("Installing dependencies...")
+    subprocess.check_call([
+        sys.executable, "-m", "pip", "install", "-q",
+        "numpy", "pandas", "mesa==2.1.1"
+    ])
+    subprocess.check_call([
+        sys.executable, "-m", "pip", "install", "-q",
+        "git+https://github.com/philip928lin/PyCHAMP.git"
+    ])
+    print("Dependencies installed")
 
-def test_pychamp_complete():
-    print("=" * 70)
-    print("Testing ALL PyChAMP Components Locally")
-    print("=" * 70)
+def init_components_faasr():
+    """Initialize PyChAMP components - FaaSr entry point"""
     
-    # Import components
+    # Read FaaSr input (if exists from previous workflow)
+    try:
+        with open("faasr_data.json", "r") as f:
+            faasr_data = json.load(f)
+    except FileNotFoundError:
+        faasr_data = {}  # First run, no previous data
+    
+    install_dependencies()
+    
+    # Import after installation
+    from mesa import Model
+    from mesa.time import RandomActivation
     from py_champ.components.aquifer import Aquifer
     from py_champ.components.well import Well
     from py_champ.components.finance import Finance
     from py_champ.components.field import Field
-    from py_champ.components.behavior import Behavior
     
-    # 1. Create Mesa model with required attributes
+    # 1. Create Mesa model
     print("\n1. Creating model...")
     model = Model()
     model.schedule = RandomActivation(model)
     model.current_step = 0
-    model.crop_options = ["corn", "soy", "wheat"]  # Required by Field
-    model.area_split = 4  # Required by Field (divide field into 4 sections)
-    print(f"   ✅ Model created with {len(model.crop_options)} crops")
+    model.crop_options = ["corn", "soy", "wheat"]
+    model.area_split = 4
+    print(f"   ✅ Model created")
     
     # 2. Initialize Aquifer
     print("\n2. Initializing Aquifer...")
@@ -39,8 +55,7 @@ def test_pychamp_complete():
     }
     aquifer = Aquifer("aq1", model, aquifer_settings)
     model.schedule.add(aquifer)
-    print(f"   ✅ Aquifer 'aq1' initialized")
-    print(f"      Saturated thickness: {aquifer.st} m")
+    print(f"   ✅ Aquifer initialized: st={aquifer.st}m")
     
     # 3. Initialize Well
     print("\n3. Initializing Well...")
@@ -62,8 +77,7 @@ def test_pychamp_complete():
     }
     well = Well("w1", model, well_settings)
     model.schedule.add(well)
-    print(f"   ✅ Well 'w1' initialized")
-    print(f"      Connected to: {well.aquifer_id}")
+    print(f"   ✅ Well initialized: connected to {well.aquifer_id}")
     
     # 4. Initialize Finance
     print("\n4. Initializing Finance...")
@@ -94,119 +108,99 @@ def test_pychamp_complete():
     }
     finance = Finance("fin1", model, finance_settings)
     model.schedule.add(finance)
-    print(f"   ✅ Finance 'fin1' initialized")
-    print(f"      Energy price: ${finance.energy_price}/kWh")
+    print(f"   ✅ Finance initialized: energy_price=${finance.energy_price}/kWh")
     
     # 5. Initialize Field
     print("\n5. Initializing Field...")
     field_settings = {
-        "field_area": 100.0,  # hectares
+        "field_area": 100.0,
         "water_yield_curves": {
-            # Format: [ymax, wmax, a, b, c, min_y_ratio]
             "corn": [10.0, 600.0, 0.5, 1.0, 0.3, 0.2],
             "soy": [4.0, 400.0, 0.6, 1.2, 0.25, 0.15],
             "wheat": [5.0, 350.0, 0.55, 1.1, 0.28, 0.18]
         },
         "tech_pumping_rate_coefs": {
-            "gravity": [1.0, 0.5, 10.0],      # [a_te, b_te, l_pr]
+            "gravity": [1.0, 0.5, 10.0],
             "sprinkler": [0.85, 0.6, 15.0],
             "drip": [0.70, 0.7, 20.0]
         },
-        "prec_aw_id": "aq1",  # Precipitation/available water source
+        "prec_aw_id": "aq1",
         "init": {
             "crop": "corn",
-            "tech": "sprinkler",      # ← Changed from "irr_tech" to "tech"
-            "field_type": "irrigated"  # ← Added field_type
+            "tech": "sprinkler",
+            "field_type": "irrigated"
         }
     }
     field = Field("f1", model, field_settings)
     model.schedule.add(field)
-    print(f"   ✅ Field 'f1' initialized")
-    print(f"      Field area: {field.field_area} ha")
-    print(f"      Initial crop: {field_settings['init']['crop']}")
+    print(f"   ✅ Field initialized: area={field.field_area}ha, crop={field.crops[0]}")
     
-    # 6. Initialize Behavior
-    # print("\n6. Initializing Behavior...")
-    # behavior_settings = {
-    #     "behavior_ids_in_network": ["b1"],  # This agent's network
-    #     "field_ids": ["f1"],                # Fields it manages
-    #     "well_ids": ["w1"],                 # Wells it manages
-    #     "finance_id": "fin1",               # Finance component
-    #     "decision_making": {
-    #         "discount_rate": 0.05,
-    #         "risk_aversion": 0.3
-    #     },
-    #     "consumat": {                       # Agent decision framework
-    #         "satisfaction_threshold": 0.7,
-    #         "uncertainty_threshold": 0.5
-    #     },
-    #     "water_rights": {
-    #         "allocation": 1000.0,           # m³/year
-    #         "type": "proportional"
-    #     },
-    #     "gurobi": {                         # Optimization settings
-    #         "OutputFlag": 0,                # Suppress Gurobi output
-    #         "TimeLimit": 60
-    #     }
-    # }
-    # behavior = Behavior("b1", model, behavior_settings)
-    # model.schedule.add(behavior)
-    # print(f"   ✅ Behavior 'b1' initialized")
-    # print(f"      Manages fields: {behavior.field_ids}")
-    # print(f"      Manages wells: {behavior.well_ids}")
+    # 6. Create state for next workflow step
+    print("\n6. Creating state...")
+    state = {
+        "workflow_step": "init_components",
+        "status": "completed",
+        "model_step": model.current_step,
+        "components": {
+            "aquifer": {
+                "id": aquifer.unique_id,
+                "st": aquifer.st,
+                "dwl": aquifer.dwl,
+                "area": aquifer.area
+            },
+            "well": {
+                "id": well.unique_id,
+                "aquifer_id": well.aquifer_id,
+                "pumping_capacity": well.pumping_capacity,
+                "eff_pump": well.eff_pump,
+                "st": well.st,
+                "pumping_days": well.pumping_days
+            },
+            "finance": {
+                "id": finance.unique_id,
+                "energy_price": finance.energy_price,
+                "crop_price": finance.crop_price,
+                "crop_cost": finance.crop_cost
+            },
+            "field": {
+                "id": field.unique_id,
+                "field_area": field.field_area,
+                "crops": field.crops,
+                "tech": field.te
+            }
+        },
+        "settings": {
+            "aquifer": aquifer_settings,
+            "well": well_settings,
+            "finance": finance_settings,
+            "field": field_settings
+        }
+    }
     
-    # Summary
-    print("\n" + "=" * 70)
-    print("✅ ALL 5 COMPONENTS INITIALIZED SUCCESSFULLY!")
-    print("=" * 70)
+    print("\n" + "=" * 60)
+    print("✅ ALL COMPONENTS INITIALIZED SUCCESSFULLY")
+    print("=" * 60)
+    print(f"Components: {list(state['components'].keys())}")
     
-    print("\nModel Components:")
-    print(f"  1. Aquifer:  {aquifer.unique_id}")
-    print(f"  2. Well:     {well.unique_id}")
-    print(f"  3. Finance:  {finance.unique_id}")
-    print(f"  4. Field:    {field.unique_id}")
-    # print(f"  5. Behavior: {behavior.unique_id}")
+    # Save state for next FaaSr action
+    faasr_data["state"] = state
     
-    print("\n" + "=" * 70)
-    print("Component Details:")
-    print("=" * 70)
+    # Write output for next step
+    with open("faasr_output.json", "w") as f:
+        json.dump(faasr_data, f, indent=2)
     
-    print(f"\n📊 Aquifer '{aquifer.unique_id}':")
-    print(f"    - Saturated thickness: {aquifer.st} m")
-    print(f"    - Area: {aquifer.area} ha")
+    print("\n✅ State saved to faasr_output.json")
     
-    print(f"\n💧 Well '{well.unique_id}':")
-    print(f"    - Pumping capacity: {well.pumping_capacity} m³/day")
-    print(f"    - Pump efficiency: {well.eff_pump * 100}%")
-    print(f"    - Connected to: {well.aquifer_id}")
-    
-    print(f"\n💰 Finance '{finance.unique_id}':")
-    # print(f"    - Initial savings: ${finance.savings}")
-    print(f"    - Energy price: ${finance.energy_price}/kWh")
-    print(f"    - Crop prices: {finance.crop_price}")
-    
-    print(f"\n🌾 Field '{field.unique_id}':")
-    print(f"    - Area: {field.field_area} ha")
-    print(f"    - Crops available: {model.crop_options}")
-    print(f"    - Field sections: {model.area_split}")
-    
-    # print(f"\n🧠 Behavior '{behavior.unique_id}':")
-    # print(f"    - Fields managed: {behavior.field_ids}")
-    # print(f"    - Wells managed: {behavior.well_ids}")
-    # print(f"    - Finance linked: {behavior.finance_id}")
-    
-    print("\n" + "=" * 70)
-    print("🎉 READY FOR FaaSr DEPLOYMENT!")
-    print("=" * 70)
-    
-    return True
+    # Return simple success message for FaaSr
+    return "SUCCESS"
 
+# FaaSr entry point
 if __name__ == "__main__":
     try:
-        success = test_pychamp_complete()
-        exit(0 if success else 1)
+        result = init_components_faasr()
+        print(f"\n✅ FaaSr step completed: {result}")
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback
         traceback.print_exc()
-        exit(1)
+        raise

@@ -1,9 +1,3 @@
-"""
-FaaSr Step 1: Initialize PyChAMP Components
-This script initializes Aquifer, Well, Finance, and Field components
-and saves the state for the next workflow step.
-"""
-
 import sys
 import json
 import subprocess
@@ -19,7 +13,7 @@ def install_dependencies():
         sys.executable, "-m", "pip", "install", "-q",
         "git+https://github.com/philip928lin/PyCHAMP.git"
     ])
-    print("✅ Dependencies installed")
+    print("Dependencies installed")
 
 def init_components_faasr():
     """Initialize PyChAMP components - FaaSr entry point"""
@@ -40,11 +34,7 @@ def init_components_faasr():
     from py_champ.components.well import Well
     from py_champ.components.finance import Finance
     from py_champ.components.field import Field
-    
-    print("\n" + "=" * 60)
-    print("Initializing PyChAMP Components in FaaSr")
-    print("=" * 60)
-    
+
     # 1. Create Mesa model
     print("\n1. Creating model...")
     model = Model()
@@ -52,7 +42,7 @@ def init_components_faasr():
     model.current_step = 0
     model.crop_options = ["corn", "soy", "wheat"]
     model.area_split = 4
-    print(f"   ✅ Model created")
+    print(f"Model created")
     
     # 2. Initialize Aquifer
     print("\n2. Initializing Aquifer...")
@@ -65,7 +55,7 @@ def init_components_faasr():
     }
     aquifer = Aquifer("aq1", model, aquifer_settings)
     model.schedule.add(aquifer)
-    print(f"   ✅ Aquifer initialized: st={aquifer.st}m")
+    print(f"Aquifer initialized: st={aquifer.st}m")
     
     # 3. Initialize Well
     print("\n3. Initializing Well...")
@@ -87,7 +77,7 @@ def init_components_faasr():
     }
     well = Well("w1", model, well_settings)
     model.schedule.add(well)
-    print(f"   ✅ Well initialized: connected to {well.aquifer_id}")
+    print(f"Well initialized: connected to {well.aquifer_id}")
     
     # 4. Initialize Finance
     print("\n4. Initializing Finance...")
@@ -118,7 +108,7 @@ def init_components_faasr():
     }
     finance = Finance("fin1", model, finance_settings)
     model.schedule.add(finance)
-    print(f"   ✅ Finance initialized: energy_price=${finance.energy_price}/kWh")
+    print(f"Finance initialized: energy_price=${finance.energy_price}/kWh")
     
     # 5. Initialize Field
     print("\n5. Initializing Field...")
@@ -143,7 +133,7 @@ def init_components_faasr():
     }
     field = Field("f1", model, field_settings)
     model.schedule.add(field)
-    print(f"   ✅ Field initialized: area={field.field_area}ha, crop={field.crops[0]}")
+    print(f"Field initialized: area={field.field_area}ha, crop={field.crops[0]}")
     
     # 6. Create state for next workflow step
     print("\n6. Creating state...")
@@ -187,9 +177,7 @@ def init_components_faasr():
         }
     }
     
-    print("\n" + "=" * 60)
-    print("✅ ALL COMPONENTS INITIALIZED SUCCESSFULLY")
-    print("=" * 60)
+    print("ALL COMPONENTS INITIALIZED SUCCESSFULLY")
     print(f"Components: {list(state['components'].keys())}")
     
     # Save state for next FaaSr action
@@ -199,7 +187,7 @@ def init_components_faasr():
     with open("faasr_output.json", "w") as f:
         json.dump(faasr_data, f, indent=2)
     
-    print("\n✅ State saved to faasr_output.json")
+    print("\n State saved to faasr_output.json")
     
     # Return simple success message for FaaSr
     # return "SUCCESS"
@@ -207,4 +195,4 @@ def init_components_faasr():
 # # FaaSr entry point
 if __name__ == "__main__":
         result = init_components_faasr()
-#         print(f"\n✅ FaaSr step completed: {result}")
+#         print(f"\nFaaSr step completed: {result}")

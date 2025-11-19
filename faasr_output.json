@@ -1,0 +1,158 @@
+{
+  "state": {
+    "workflow_step": "aquifer_simulation",
+    "status": "completed",
+    "model_step": 2,
+    "components": {
+      "aquifer": {
+        "id": "aq1",
+        "st": 29.700000000000003,
+        "dwl": -0.15,
+        "area": 100.0,
+        "withdrawal": 5.0,
+        "inflow": 2.0,
+        "dwl_change": -0.15
+      },
+      "well": {
+        "id": "w1",
+        "aquifer_id": "aq1",
+        "pumping_capacity": 100.0,
+        "eff_pump": 0.75,
+        "st": 30.0,
+        "pumping_days": 90
+      },
+      "finance": {
+        "id": "fin1",
+        "energy_price": 0.12,
+        "crop_price": {
+          "corn": 5.0,
+          "soy": 10.0,
+          "wheat": 3.0
+        },
+        "crop_cost": {
+          "corn": 400.0,
+          "soy": 300.0,
+          "wheat": 250.0
+        }
+      },
+      "field": {
+        "id": "f1",
+        "field_area": 100.0,
+        "crops": [
+          "corn",
+          "corn",
+          "corn",
+          "corn"
+        ],
+        "tech": "sprinkler"
+      }
+    },
+    "settings": {
+      "aquifer": {
+        "aq_a": 0.1,
+        "aq_b": 10.0,
+        "area": 100.0,
+        "sy": 0.2,
+        "init": {
+          "st": 29.85,
+          "dwl": -0.15
+        }
+      },
+      "well": {
+        "r": 0.2032,
+        "k": 15.0,
+        "sy": 0.2,
+        "rho": 1000.0,
+        "g": 9.81,
+        "eff_pump": 0.75,
+        "eff_well": 0.85,
+        "aquifer_id": "aq1",
+        "pumping_capacity": 100.0,
+        "init": {
+          "st": 30.0,
+          "l_wt": 5.0,
+          "pumping_days": 90
+        }
+      },
+      "finance": {
+        "energy_price": 0.12,
+        "crop_price": {
+          "corn": 5.0,
+          "soy": 10.0,
+          "wheat": 3.0
+        },
+        "crop_cost": {
+          "corn": 400.0,
+          "soy": 300.0,
+          "wheat": 250.0
+        },
+        "irr_tech_operational_cost": {
+          "gravity": 50.0,
+          "sprinkler": 100.0,
+          "drip": 150.0
+        },
+        "irr_tech_change_cost": {
+          "gravity": 1000.0,
+          "sprinkler": 2000.0,
+          "drip": 3000.0
+        },
+        "crop_change_cost": 200.0,
+        "init": {
+          "savings": 10000.0
+        }
+      },
+      "field": {
+        "field_area": 100.0,
+        "water_yield_curves": {
+          "corn": [
+            10.0,
+            600.0,
+            0.5,
+            1.0,
+            0.3,
+            0.2
+          ],
+          "soy": [
+            4.0,
+            400.0,
+            0.6,
+            1.2,
+            0.25,
+            0.15
+          ],
+          "wheat": [
+            5.0,
+            350.0,
+            0.55,
+            1.1,
+            0.28,
+            0.18
+          ]
+        },
+        "tech_pumping_rate_coefs": {
+          "gravity": [
+            1.0,
+            0.5,
+            10.0
+          ],
+          "sprinkler": [
+            0.85,
+            0.6,
+            15.0
+          ],
+          "drip": [
+            0.7,
+            0.7,
+            20.0
+          ]
+        },
+        "prec_aw_id": "aq1",
+        "init": {
+          "crop": "corn",
+          "tech": "sprinkler",
+          "field_type": "irrigated"
+        }
+      }
+    }
+  }
+}
