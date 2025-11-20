@@ -26,8 +26,8 @@ def aquifer_step_faasr():
         with open("faasr_data.json", "r") as f:
             faasr_data = json.load(f)
     except FileNotFoundError:
-        print("No faasr_data.json found - need to run init_components first")
-        sys.exit(1)
+        faasr_data = {}
+        print(" No previous state found, creating empty state")
     
     install_dependencies()
     
@@ -39,9 +39,10 @@ def aquifer_step_faasr():
     
     # Get state
     state = faasr_data.get("state", {})
-    if not state:
-        print("No state found in faasr_data")
-        sys.exit(1)
+    if not state or "settings" not in state:
+            print("No valid state found - workflow needs to run init_components first")
+            print("Available keys in faasr_data:", list(faasr_data.keys()))
+            #  sys.exit(1)
     
     print(f"Previous step: {state.get('workflow_step')}")
     
