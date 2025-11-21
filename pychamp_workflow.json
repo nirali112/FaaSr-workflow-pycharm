@@ -1,6 +1,6 @@
 {
   "ActionList": {
-     "start": {
+    "start": {
       "Arguments": {
         "folder": "tutorial",
         "output1": "sample1.csv",
@@ -17,14 +17,20 @@
       "FunctionName": "init_components_faasr",
       "FaaSServer": "GH",
       "Type": "Python",
-      "Arguments": {},
-      "InvokeNext": ["aquifer"]
+      "Arguments": {
+        "output1": "payload"
+      },
+      "InvokeNext": [
+        "aquifer"
+      ]
     },
     "aquifer": {
       "FunctionName": "aquifer_step_faasr",
       "FaaSServer": "GH",
       "Type": "Python",
-      "Arguments": {},
+      "Arguments": {
+        "output1": "payload"
+      },
       "InvokeNext": []
     }
   },
@@ -58,6 +64,5 @@
   },
   "LoggingDataStore": "S3",
   "FaaSrLog": "FaaSrLog",
-  "InvocationID": "",
   "WorkflowName": "pychamp-workflow"
 }
