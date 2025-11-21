@@ -47,6 +47,7 @@ def aquifer_step_faasr():
             print("No valid state found - workflow needs to run init_components first")
             print("Available keys in faasr_data:", list(faasr_data.keys()))
             #  sys.exit(1)
+            return
     
     print(f"Previous step: {state.get('workflow_step')}")
     

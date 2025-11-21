@@ -182,6 +182,9 @@ def init_components_faasr():
     
     # Save state for next FaaSr action
     faasr_data["state"] = state
+
+    print(f"DEBUG: State keys: {list(state.keys())}")
+    print(f"DEBUG: Writing payload with {len(json.dumps(faasr_data))} bytes")
     
     # Write output for next step
     with open("payload", "w") as f:
