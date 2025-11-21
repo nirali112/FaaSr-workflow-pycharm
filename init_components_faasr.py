@@ -184,10 +184,10 @@ def init_components_faasr():
     faasr_data["state"] = state
     
     # Write output for next step
-    with open("faasr_output.json", "w") as f:
+    with open("payload", "w") as f:
         json.dump(faasr_data, f, indent=2)
     
-    print("\n State saved to faasr_output.json")
+    print("\n State saved to payload")
     
     # Return simple success message for FaaSr
     # return "SUCCESS"

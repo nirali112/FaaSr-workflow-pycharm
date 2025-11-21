@@ -23,11 +23,15 @@ def install_dependencies():
 def aquifer_step_faasr():    
     # Read state from previous step
     try:
-        with open("faasr_data.json", "r") as f:
+        with open("payload", "r") as f:
             faasr_data = json.load(f)
     except FileNotFoundError:
-        faasr_data = {}
-        print(" No previous state found, creating empty state")
+        try:
+            with open("faasr_data.json", "r") as f:
+                faasr_data = json.load(f)
+        except FileNotFoundError:
+            faasr_data = {}
+            print(" No previous state found, creating empty state")
     
     install_dependencies()
     
@@ -93,10 +97,10 @@ def aquifer_step_faasr():
     # Save updated state
     faasr_data["state"] = state
     
-    with open("faasr_output.json", "w") as f:
+    with open("payload", "w") as f:
         json.dump(faasr_data, f, indent=2)
     
-    print("State saved to faasr_output.json")
+    print("State saved to payload")
 
 if __name__ == "__main__":
     aquifer_step_faasr()
