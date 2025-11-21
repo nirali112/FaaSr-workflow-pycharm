@@ -15,7 +15,7 @@ def install_dependencies():
     ])
     print("Dependencies installed")
 
-def init_components_faasr():
+def init_components_faasr(output1="payload"):
     """Initialize PyChAMP components - FaaSr entry point"""
     
     # Read FaaSr input (if exists from previous workflow)
@@ -187,15 +187,15 @@ def init_components_faasr():
     print(f"DEBUG: Writing payload with {len(json.dumps(faasr_data))} bytes")
     
     # Write output for next step
-    with open("payload", "w") as f:
+    with open("output1", "w") as f:
         json.dump(faasr_data, f, indent=2)
     
-    print("\n State saved to payload")
+    print(f"\n State saved to {output1}")
     
     # Return simple success message for FaaSr
     # return "SUCCESS"
 
 # # FaaSr entry point
 if __name__ == "__main__":
-        result = init_components_faasr()
+        result = init_components_faasr(output1="payload")
 #         print(f"\nFaaSr step completed: {result}")
