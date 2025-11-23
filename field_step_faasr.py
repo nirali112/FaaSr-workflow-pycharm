@@ -19,7 +19,7 @@ def install_dependencies():
         sys.executable, "-m", "pip", "install", "-q",
         "git+https://github.com/philip928lin/PyCHAMP.git"
     ])
-    print("✅ Dependencies installed")
+    print("Dependencies installed")
 
 def field_step_faasr(output1="payload"):
     """Simulate field crop growth"""
@@ -55,7 +55,7 @@ def field_step_faasr(output1="payload"):
     # Get state
     state = faasr_data.get("state", {})
     if not state or "settings" not in state:
-        print("❌ No valid state found")
+        print(" No valid state found")
         return
     
     print(f"Previous step: {state.get('workflow_step')}")
@@ -127,9 +127,7 @@ def field_step_faasr(output1="payload"):
         "pumping_rate": float(field.pumping_rate)
     })
     
-    print("\n" + "=" * 60)
-    print("✅ FIELD STEP COMPLETED")
-    print("=" * 60)
+    print("FIELD STEP COMPLETED")
     
     # Save updated state
     faasr_data["state"] = state
