@@ -1,17 +1,14 @@
 {
   "state": {
-    "workflow_step": "aquifer_simulation",
+    "workflow_step": "init_components",
     "status": "completed",
-    "model_step": 2,
+    "model_step": 0,
     "components": {
       "aquifer": {
         "id": "aq1",
-        "st": 29.700000000000003,
-        "dwl": -0.15,
-        "area": 100.0,
-        "withdrawal": 5.0,
-        "inflow": 2.0,
-        "dwl_change": -0.15
+        "st": 30.0,
+        "dwl": 0.0,
+        "area": 100.0
       },
       "well": {
         "id": "w1",
@@ -54,8 +51,8 @@
         "area": 100.0,
         "sy": 0.2,
         "init": {
-          "st": 29.85,
-          "dwl": -0.15
+          "st": 30.0,
+          "dwl": 0.0
         }
       },
       "well": {

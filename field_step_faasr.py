@@ -1,114 +1,151 @@
-# field_step_faasr.py
-import json
-import os
+"""
+FaaSr Step: Field Simulation
+Simulates crop growth and irrigation water use
+"""
 
-def field_step_faasr():
-    """
-    Update field conditions based on irrigation decision.
-    Calculate crop yield, revenue, and profit.
-    """
-    print("[field_step_faasr] Starting field step...")
+import sys
+import json
+import subprocess
+import numpy as np
+
+def install_dependencies():
+    """Install required packages in FaaSr container"""
+    print("Installing dependencies...")
+    subprocess.check_call([
+        sys.executable, "-m", "pip", "install", "-q",
+        "numpy", "pandas", "mesa==2.1.1"
+    ])
+    subprocess.check_call([
+        sys.executable, "-m", "pip", "install", "-q",
+        "git+https://github.com/philip928lin/PyCHAMP.git"
+    ])
+    print("✅ Dependencies installed")
+
+def field_step_faasr(output1="payload"):
+    """Simulate field crop growth"""
     
-    # Download state
-    print("[field_step_faasr] Downloading state...")
-    faasr_get_file(
-        server_name="S3",
-        remote_folder="pychamp-workflow",
-        remote_file="state.json",
-        local_folder="",
-        local_file="state.json"
-    )
-    
-    # Load state
-    with open("state.json", "r") as f:
-        state = json.load(f)
-    
-    field = state["field"]
-    decision = state.get("decision", {})
-    finance = state["finance"]
-    
-    # Extract irrigation decision
-    irrigation_amount = decision.get("amount", 0.0)
-    irrigation_action = decision.get("action", "no_irrigation")
-    
-    print(f"[field_step_faasr] Processing irrigation: {irrigation_action}, {irrigation_amount:.1f} mm")
-    
-    # Update soil moisture based on irrigation
-    if irrigation_action == "irrigate" and irrigation_amount > 0:
-        # Apply irrigation to soil moisture
-        field["soil_moisture"] = min(1.0, field["soil_moisture"] + (irrigation_amount / 100.0))
-        field["init"]["irr_used"] = irrigation_amount
-        field["init"]["irr_alloc"] = irrigation_amount
-    else:
-        # Natural soil moisture decline
-        field["soil_moisture"] = max(0.1, field["soil_moisture"] - 0.05)
-        field["init"]["irr_used"] = 0.0
-        field["init"]["irr_alloc"] = 0.0
-    
-    # Calculate crop yield based on water availability
-    water_available = field["soil_moisture"] * 100  # Convert to mm equivalent
-    
-    # Get yield curve for current crop
-    yield_curves = field["water_yield_curves"].get(field["crop"], [[0.0, 0.0, 0.0], [100.0, 1.0, 0.8]])
-    
-    # Interpolate yield based on water availability
-    if len(yield_curves) >= 2:
-        water_points = [curve[0] for curve in yield_curves]
-        yield_points = [curve[1] for curve in yield_curves]
+    # Download state from S3
+    try:
+        faasr_get_file(
+            server_name="S3",
+            remote_folder="pychamp-workflow",
+            remote_file="payload",
+            local_folder="",
+            local_file="payload"
+        )
+        print("Downloaded payload from S3")
         
-        # Simple linear interpolation
-        if water_available <= water_points[0]:
-            yield_ratio = yield_points[0]
-        elif water_available >= water_points[-1]:
-            yield_ratio = yield_points[-1]
-        else:
-            # Find the segment to interpolate
-            for i in range(len(water_points) - 1):
-                if water_points[i] <= water_available <= water_points[i + 1]:
-                    w1, w2 = water_points[i], water_points[i + 1]
-                    y1, y2 = yield_points[i], yield_points[i + 1]
-                    yield_ratio = y1 + (y2 - y1) * (water_available - w1) / (w2 - w1)
-                    break
-            else:
-                yield_ratio = yield_points[0]
-    else:
-        yield_ratio = 0.5  # Default if no yield curve
+        with open("payload", "r") as f:
+            faasr_data = json.load(f)
+    except Exception as e:
+        print(f"❌ Could not download payload: {e}")
+        return
     
-    # Calculate actual yield (tons per hectare)
-    max_yield = 10.0  # Maximum potential yield for the crop
-    actual_yield = yield_ratio * max_yield * field["field_area"] / 100  # Convert to total tons
+    install_dependencies()
     
-    # Update field state
-    field["init"]["yield"] = actual_yield
+    # Import after installation
+    from mesa import Model
+    from mesa.time import RandomActivation
+    from py_champ.components.field import Field
     
-    # Calculate revenue and profit
-    revenue = actual_yield * finance["crop_price"]
-    cost = finance["cost"] * field["field_area"] / 100  # Cost per hectare
-    profit = revenue - cost
+    print("\n" + "=" * 60)
+    print("Simulating Field Step")
+    print("=" * 60)
     
-    field["init"]["revenue"] = revenue
-    field["init"]["profit"] = profit
+    # Get state
+    state = faasr_data.get("state", {})
+    if not state or "settings" not in state:
+        print("❌ No valid state found")
+        return
+    
+    print(f"Previous step: {state.get('workflow_step')}")
+    
+    # Recreate model and field
+    model = Model()
+    model.schedule = RandomActivation(model)
+    model.current_step = state.get("model_step", 0)
+    model.crop_options = ["corn", "soy", "wheat"]
+    model.area_split = 4
+    
+    # Get field settings and recreate
+    field_settings = state["settings"]["field"]
+    field = Field("f1", model, field_settings, 
+                  truncated_normal_pars={
+                      "corn": [0.5, 0.1, 0, 1],
+                      "soy": [0.5, 0.1, 0, 1],
+                      "wheat": [0.5, 0.1, 0, 1]
+                  })
+    model.schedule.add(field)
+    
+    print(f"\nField state before step:")
+    print(f"  Area: {field.field_area} ha")
+    print(f"  Current crops: {field.crops}")
+    print(f"  Current tech: {field.te}")
+    
+    # Simulation inputs (simplified)
+    # In real scenario, these would come from optimization/decision making
+    n_s = model.area_split
+    n_c = len(model.crop_options)
+    
+    # Irrigation depth: 10 cm for all fields/crops
+    irr_depth = np.ones((n_s, n_c, 1)) * 10.0  # cm
+    
+    # Crop indicators: all growing corn (first crop)
+    i_crop = np.zeros((n_s, n_c, 1))
+    i_crop[:, 0, 0] = 1  # First crop (corn) for all sections
+    
+    # Technology: sprinkler
+    i_te = "sprinkler"
+    
+    # Precipitation available water
+    prec_aw = {"corn": 20.0, "soy": 18.0, "wheat": 15.0}  # cm
+    
+    print(f"\nSimulation inputs:")
+    print(f"  Irrigation depth: {irr_depth[0,0,0]} cm")
+    print(f"  Technology: {i_te}")
+    print(f"  Precipitation: {prec_aw}")
+    
+    # Run field step
+    y, avg_y_y, irr_vol = field.step(irr_depth, i_crop, i_te, prec_aw)
+    
+    print(f"\nField state after step:")
+    print(f"  Total yield: {np.sum(y):.2f} (1e4 bu)")
+    print(f"  Avg yield rate: {avg_y_y:.4f}")
+    print(f"  Irrigation volume: {irr_vol:.2f} m-ha")
+    print(f"  Pumping rate: {field.pumping_rate:.2f} m-ha/day")
     
     # Update state
-    state["field"] = field
+    model.current_step += 1
+    state["workflow_step"] = "field_simulation"
+    state["model_step"] = model.current_step
+    state["components"]["field"].update({
+        "crops": field.crops,
+        "tech": field.te,
+        "yield": float(np.sum(y)),
+        "avg_yield_rate": float(avg_y_y),
+        "irrigation_volume": float(irr_vol),
+        "pumping_rate": float(field.pumping_rate)
+    })
     
-    print(f"[field_step_faasr] Updated field conditions:")
-    print(f"  - Soil moisture: {field['soil_moisture']:.3f}")
-    print(f"  - Irrigation used: {field['init']['irr_used']:.1f} mm")
-    print(f"  - Yield: {actual_yield:.2f} tons")
-    print(f"  - Revenue: ${revenue:.2f}")
-    print(f"  - Profit: ${profit:.2f}")
+    print("\n" + "=" * 60)
+    print("✅ FIELD STEP COMPLETED")
+    print("=" * 60)
     
-    # Save and upload
-    with open("state.json", "w") as f:
-        json.dump(state, f, indent=2)
+    # Save updated state
+    faasr_data["state"] = state
+    
+    with open("payload", "w") as f:
+        json.dump(faasr_data, f, indent=2)
     
     faasr_put_file(
         server_name="S3",
         local_folder="",
-        local_file="state.json",
+        local_file="payload",
         remote_folder="pychamp-workflow",
-        remote_file="state.json"
+        remote_file="payload"
     )
     
-    print("[field_step_faasr] Field step complete!")
+    print("Updated payload uploaded to S3")
+
+if __name__ == "__main__":
+    field_step_faasr()
