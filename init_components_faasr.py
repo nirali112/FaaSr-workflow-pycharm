@@ -183,17 +183,34 @@ def init_components_faasr(output1="payload"):
     # Save state for next FaaSr action
     faasr_data["state"] = state
 
-    print(f"DEBUG: State keys: {list(state.keys())}")
-    print(f"DEBUG: Writing payload with {len(json.dumps(faasr_data))} bytes")
-    
-    # Write output for next step
-    with open("output1", "w") as f:
+    # Write to local file first
+    with open("payload", "w") as f:
         json.dump(faasr_data, f, indent=2)
     
-    print(f"\n State saved to {output1}")
+    print("State saved to local payload file")
     
-    # Return simple success message for FaaSr
-    # return "SUCCESS"
+    # Upload to S3 using FaaSr API
+    faasr_put_file(
+        server_name="S3",
+        local_folder="",
+        local_file="payload",
+        remote_folder="pychamp-workflow",
+        remote_file="payload"
+    )
+    
+    print("Payload uploaded to S3")
+
+    # print(f"DEBUG: State keys: {list(state.keys())}")
+    # print(f"DEBUG: Writing payload with {len(json.dumps(faasr_data))} bytes")
+    
+    # # Write output for next step
+    # with open("output1", "w") as f:
+    #     json.dump(faasr_data, f, indent=2)
+    
+    # print(f"\n State saved to {output1}")
+    
+    # # Return simple success message for FaaSr
+    # # return "SUCCESS"
 
 # # FaaSr entry point
 if __name__ == "__main__":

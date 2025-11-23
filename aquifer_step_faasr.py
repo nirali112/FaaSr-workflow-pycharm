@@ -21,17 +21,23 @@ def install_dependencies():
     print("Dependencies installed")
 
 def aquifer_step_faasr(output1="payload"):    
-    # Read state from previous step
+    # Read state from previous step    
     try:
-        with open(output1, "r") as f:
+        faasr_get_file(
+            server_name="S3",
+            remote_folder="pychamp-workflow",
+            remote_file="payload",
+            local_folder="",
+            local_file="payload"
+        )
+        print("Downloaded payload from S3")
+        
+        with open("payload", "r") as f:
             faasr_data = json.load(f)
-    except FileNotFoundError:
-        try:
-            with open("faasr_data.json", "r") as f:
-                faasr_data = json.load(f)
-        except FileNotFoundError:
-            faasr_data = {}
-            print(" No previous state found, creating empty state")
+    except Exception as e:
+        print(f" Could not download payload: {e}")
+        faasr_data = {}
+
     
     install_dependencies()
     
@@ -97,11 +103,25 @@ def aquifer_step_faasr(output1="payload"):
     
     # Save updated state
     faasr_data["state"] = state
-    
-    with open(output1, "w") as f:
+
+    # At the end, upload updated state
+    with open("payload", "w") as f:
         json.dump(faasr_data, f, indent=2)
     
-    print(f"State saved to {output1}")
+    faasr_put_file(
+        server_name="S3",
+        local_folder="",
+        local_file="payload",
+        remote_folder="pychamp-workflow",
+        remote_file="payload"
+    )
+    
+    print("Updated payload uploaded to S3")
+    
+    # with open(output1, "w") as f:
+    #     json.dump(faasr_data, f, indent=2)
+    
+    # print(f"State saved to {output1}")
 
 if __name__ == "__main__":
     aquifer_step_faasr(output1="payload")
