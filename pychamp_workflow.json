@@ -31,6 +31,15 @@
       "Arguments": {
         "output1": "payload"
       },
+      "InvokeNext": ["field"]
+    },
+    "field": {
+      "FunctionName": "field_step_faasr",
+      "FaaSServer": "GH",
+      "Type": "Python",
+      "Arguments": {
+        "output1": "payload"
+      },
       "InvokeNext": []
     }
   },
@@ -53,14 +62,16 @@
   "ActionContainers": {
     "start": "ghcr.io/faasr/github-actions-r:latest",
     "init": "ghcr.io/faasr/github-actions-python:latest",
-    "aquifer": "ghcr.io/faasr/github-actions-python:latest"
+    "aquifer": "ghcr.io/faasr/github-actions-python:latest",
+    "field": "ghcr.io/faasr/github-actions-python:latest"
   },
   "FunctionInvoke": "start",
   "DefaultDataStore": "S3",
   "FunctionGitRepo": {
     "create_sample_data": "FaaSr/FaaSr-tutorial",
     "init_components_faasr": "nirali112/FaaSr-workflow-pycharm",
-    "aquifer_step_faasr": "nirali112/FaaSr-workflow-pycharm"
+    "aquifer_step_faasr": "nirali112/FaaSr-workflow-pycharm",
+    "field_step_faasr": "nirali112/FaaSr-workflow-pycharm"
   },
   "LoggingDataStore": "S3",
   "FaaSrLog": "FaaSrLog",
