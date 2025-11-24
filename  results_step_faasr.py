@@ -1,102 +1,121 @@
-# results_step_faasr.py
+"""
+FaaSr Step: Results Aggregation
+Summarizes all simulation results
+"""
+
+import sys
 import json
-import os
+import subprocess
 
-def results_step_faasr():
-    """
-    Aggregate and display final results.
-    Calculate sustainability metrics.
-    """
-    print("[results_step_faasr] Starting results step...")
+def install_dependencies():
+    """Install required packages"""
+    print("Installing dependencies...")
+    subprocess.check_call([
+        sys.executable, "-m", "pip", "install", "-q",
+        "numpy", "pandas"
+    ])
+    print("Dependencies installed")
+
+def results_step_faasr(output1="payload"):
+    """Aggregate and summarize results"""
     
-    # Download state
-    print("[results_step_faasr] Downloading final state...")
-    faasr_get_file(
-        server_name="S3",
-        remote_folder="pychamp-workflow",
-        remote_file="state.json",
-        local_folder="",
-        local_file="state.json"
-    )
+    # Download from S3
+    try:
+        faasr_get_file(
+            server_name="S3",
+            remote_folder="pychamp-workflow",
+            remote_file=output1,
+            local_folder="",
+            local_file=output1
+        )
+        print("Downloaded payload from S3")
+    except NameError:
+        print("Running locally")
+    except Exception as e:
+        print(f"Download error: {e}")
     
-    # Load state
-    with open("state.json", "r") as f:
-        state = json.load(f)
+    # Read file
+    try:
+        with open(output1, "r") as f:
+            faasr_data = json.load(f)
+    except FileNotFoundError:
+        print("No payload file")
+        return
     
-    field = state["field"]
-    aquifer = state["aquifer"]
-    well = state["well"]
-    finance = state["finance"]
-    behavior = state["behavior"]
-    decision = state.get("decision", {})
+    install_dependencies()
+        
+    state = faasr_data.get("state", {})
+    if not state:
+        print("No state found")
+        return
     
-    # Aggregate all results
-    results = {
-        "irrigation": {
-            "decision": decision.get("action", "no_irrigation"),
-            "amount": decision.get("amount", 0.0),
-            "satisfaction": decision.get("satisfaction", 0.0),
-            "uncertainty": decision.get("uncertainty", 0.0),
-            "consumat_state": decision.get("consumat_state", "unknown")
-        },
-        "field": {
-            "soil_moisture": field["soil_moisture"],
-            "yield": field["init"].get("yield", 0.0),
-            "revenue": field["init"].get("revenue", 0.0),
-            "profit": field["init"].get("profit", 0.0),
-            "irrigation_used": field["init"].get("irr_used", 0.0)
-        },
-        "aquifer": {
-            "storage": aquifer["init"]["st"],
-            "drawdown": aquifer["init"]["dwl"],
-            "area": aquifer["area"],
-            "specific_yield": aquifer["sy"]
-        },
-        "economics": {
-            "net_profit": finance.get("net_profit", 0.0),
-            "total_costs": finance.get("total_costs", 0.0),
-            "profit_margin": finance.get("profit_margin", 0.0),
-            "water_productivity": finance.get("water_productivity", 0.0),
-            "pumping_cost": state.get("pumping_cost", 0.0)
-        },
-        "behavior": {
-            "satisfaction": behavior.get("satisfaction", 0.7),
-            "uncertainty": behavior.get("uncertainty", 0.3),
-            "optimal_irrigation": behavior.get("optimal_irrigation", 0.0)
-        }
+    components = state.get("components", {})
+    
+    # Aquifer results
+    print("\n AQUIFER:")
+    aquifer = components.get("aquifer", {})
+    print(f"  Initial saturated thickness: 30.0 m")
+    print(f"  Final saturated thickness: {aquifer.get('st', 0):.2f} m")
+    print(f"  Water level change: {aquifer.get('dwl_change', 0):.2f} m")
+    print(f"  Total withdrawal: {aquifer.get('withdrawal', 0):.2f} m-ha")
+    
+    # Well results
+    print("\n WELL:")
+    well = components.get("well", {})
+    print(f"  Pumping capacity: {well.get('pumping_capacity', 0):.2f} m³/day")
+    print(f"  Pump efficiency: {well.get('eff_pump', 0)*100:.1f}%")
+    print(f"  Operating days: {well.get('pumping_days', 0)}")
+    
+    # Field results
+    print("\n FIELD:")
+    field = components.get("field", {})
+    print(f"  Field area: {field.get('field_area', 0):.2f} ha")
+    print(f"  Crops grown: {', '.join(field.get('crops', []))}")
+    print(f"  Irrigation tech: {field.get('tech', 'unknown')}")
+    print(f"  Total yield: {field.get('yield', 0):.2f} (1e4 bu)")
+    print(f"  Irrigation volume: {field.get('irrigation_volume', 0):.2f} m-ha")
+    
+    # Finance results
+    print("\n FINANCE:")
+    finance = components.get("finance", {})
+    print(f"  Revenue: ${finance.get('revenue', 0):.2f} (1e4$)")
+    print(f"  Energy cost: ${finance.get('energy_cost', 0):.2f} (1e4$)")
+    print(f"  Tech cost: ${finance.get('tech_cost', 0):.2f} (1e4$)")
+    print(f"  PROFIT: ${finance.get('profit', 0):.2f} (1e4$)")
+    
+    # Workflow summary
+    print("WORKFLOW SUMMARY:")
+    print(f"  Total steps executed: {state.get('model_step', 0)}")
+    print(f"  Final workflow step: {state.get('workflow_step', 'unknown')}")
+    print(f"  Status: {state.get('status', 'unknown')}")
+    
+    print("PYCHAMP WORKFLOW COMPLETED SUCCESSFULLY!")
+    
+    # Save final results
+    results_summary = {
+        "aquifer_depletion_m": aquifer.get("st", 30) - 30.0,
+        "total_yield_1e4bu": field.get("yield", 0),
+        "profit_1e4dollar": finance.get("profit", 0),
+        "workflow_steps": state.get("model_step", 0)
     }
     
-    # Calculate sustainability metrics
-    sustainability_score = 0.0
-    if aquifer["init"]["st"] > 20.0:  # Good storage
-        sustainability_score += 0.4
-    if field["soil_moisture"] > 0.6:  # Good soil moisture
-        sustainability_score += 0.3
-    if finance.get("net_profit", 0.0) > 0:  # Profitable
-        sustainability_score += 0.3
+    state["results_summary"] = results_summary
+    faasr_data["state"] = state
     
-    results["sustainability"] = {
-        "score": sustainability_score,
-        "water_availability": "Good" if aquifer["init"]["st"] > 20.0 else "Low",
-        "soil_health": "Good" if field["soil_moisture"] > 0.6 else "Poor",
-        "economic_viability": "Profitable" if finance.get("net_profit", 0.0) > 0 else "Loss"
-    }
+    with open(output1, "w") as f:
+        json.dump(faasr_data, f, indent=2)
     
-    # Store results in state
-    state["results"] = results
+    try:
+        faasr_put_file(
+            server_name="S3",
+            local_folder="",
+            local_file=output1,
+            remote_folder="pychamp-workflow",
+            remote_file=output1
+        )
+        print("\nFinal results uploaded to S3")
+    except NameError:
+        print("\nRunning locally - results saved")
 
-    
-    # Save final state
-    with open("state.json", "w") as f:
-        json.dump(state, f, indent=2)
-    
-    faasr_put_file(
-        server_name="S3",
-        local_folder="",
-        local_file="state.json",
-        remote_folder="pychamp-workflow",
-        remote_file="state.json"
-    )
-    
-    print("[results_step_faasr] Results step complete!")
-    print("[results_step_faasr] Full workflow executed successfully!")
+if __name__ == "__main__":
+    results_step_faasr()

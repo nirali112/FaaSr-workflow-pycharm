@@ -1,78 +1,163 @@
-# finance_step_faasr.py
-import json
-import os
+"""
+FaaSr Step: Finance Calculation
+Calculates costs, revenue, and profit
+"""
 
-def finance_step_faasr():
-    """
-    Calculate financial outcomes including costs and profits.
-    """
-    print("[finance_step_faasr] Starting finance step...")
+import sys
+import json
+import subprocess
+
+def install_dependencies():
+    """Install required packages in FaaSr container"""
+    print("Installing dependencies...")
+    subprocess.check_call([
+        sys.executable, "-m", "pip", "install", "-q",
+        "numpy", "pandas", "mesa==2.1.1"
+    ])
+    subprocess.check_call([
+        sys.executable, "-m", "pip", "install", "-q",
+        "git+https://github.com/philip928lin/PyCHAMP.git"
+    ])
+    print("Dependencies installed")
+
+def finance_step_faasr(output1="payload"):
+    """Calculate finance and profit"""
     
-    # Download state
-    print("[finance_step_faasr] Downloading state...")
-    faasr_get_file(
-        server_name="S3",
-        remote_folder="pychamp-workflow",
-        remote_file="state.json",
-        local_folder="",
-        local_file="state.json"
-    )
+    # Download from S3
+    try:
+        faasr_get_file(
+            server_name="S3",
+            remote_folder="pychamp-workflow",
+            remote_file=output1,
+            local_folder="",
+            local_file=output1
+        )
+        print("Downloaded payload from S3")
+    except NameError:
+        print("Running locally")
+    except Exception as e:
+        print(f"Download error: {e}")
     
-    # Load state
-    with open("state.json", "r") as f:
-        state = json.load(f)
+    # Read file
+    try:
+        with open(output1, "r") as f:
+            faasr_data = json.load(f)
+    except FileNotFoundError:
+        print("No payload file")
+        return
     
-    field = state["field"]
-    finance = state["finance"]
-    pumping_cost = state.get("pumping_cost", 0.0)
+    install_dependencies()
     
-    # Get field economic results
-    field_revenue = field["init"].get("revenue", 0.0)
-    field_profit = field["init"].get("profit", 0.0)
+    # Import after installation
+    import numpy as np
+    from mesa import Model
+    from mesa.time import RandomActivation
+    from py_champ.components.aquifer import Aquifer
+    from py_champ.components.well import Well
+    from py_champ.components.field import Field
+    from py_champ.components.finance import Finance
     
-    print(f"[finance_step_faasr] Calculating financial summary...")
+    print("\n" + "=" * 60)
+    print("Calculating Finance")
+    print("=" * 60)
     
-    # Calculate total costs including pumping
-    total_costs = (finance["cost"] * field["field_area"] / 100) + pumping_cost
+    # Get state
+    state = faasr_data.get("state", {})
+    if not state or "settings" not in state:
+        print(" No valid state")
+        return
     
-    # Calculate net profit
-    net_profit = field_revenue - total_costs
+    print(f"Previous step: {state.get('workflow_step')}")
     
-    # Calculate profit margin
-    profit_margin = (net_profit / field_revenue * 100) if field_revenue > 0 else 0
+    # Recreate model
+    model = Model()
+    model.schedule = RandomActivation(model)
+    model.current_step = state.get("model_step", 0)
+    model.crop_options = ["corn", "soy", "wheat"]
+    model.area_split = 4
     
-    # Calculate water productivity (revenue per unit of water)
-    irrigation_used = field["init"].get("irr_used", 0.0)
-    water_productivity = field_revenue / irrigation_used if irrigation_used > 0 else 0
+    # Recreate components with current state
+    # Field
+    field_settings = state["settings"]["field"]
+    field = Field("f1", model, field_settings,
+                  truncated_normal_pars={
+                      "corn": [0.5, 0.1, 0, 1],
+                      "soy": [0.5, 0.1, 0, 1],
+                      "wheat": [0.5, 0.1, 0, 1]
+                  })
     
-    # Update finance state
-    finance["net_profit"] = net_profit
-    finance["total_costs"] = total_costs
-    finance["profit_margin"] = profit_margin
-    finance["water_productivity"] = water_productivity
+    # Restore field state from simulation
+    field_state = state["components"]["field"]
+    field.crops = field_state.get("crops", ["corn"])
+    field.te = field_state.get("tech", "sprinkler")
+    field.pumping_rate = field_state.get("pumping_rate", 0)
+    field.irr_vol_per_field = field_state.get("irrigation_volume", 0)
+    
+    # Create yield array (simplified - normally from field simulation)
+    n_s = model.area_split
+    n_c = len(model.crop_options)
+    field.y = np.ones((n_s, n_c, 1)) * field_state.get("yield", 0) / n_s
+    field.pre_te = field.te
+    field.i_crop = np.zeros((n_s, n_c, 1))
+    field.i_crop[:, 0, 0] = 1  # corn
+    field.pre_i_crop = field.i_crop.copy()
+    
+    # Well
+    well_settings = state["settings"]["well"]
+    well_settings["init"]["st"] = state["components"]["well"]["st"]
+    well = Well("w1", model, well_settings)
+    
+    # Simulate well energy consumption (simplified)
+    well.e = field.pumping_rate * 0.001  # Convert to PJ (simplified)
+    
+    # Finance
+    finance_settings = state["settings"]["finance"]
+    finance = Finance("fin1", model, finance_settings)
+    
+    print(f"\nFinance inputs:")
+    print(f"  Field yield: {field_state.get('yield', 0):.2f} (1e4 bu)")
+    print(f"  Irrigation volume: {field.irr_vol_per_field:.2f} m-ha")
+    print(f"  Well energy: {well.e:.4f} PJ")
+    
+    # Run finance step
+    profit = finance.step(fields={"f1": field}, wells={"w1": well})
+    
+    print(f"\nFinance results:")
+    print(f"  Revenue: ${finance.rev:.2f} (1e4$)")
+    print(f"  Energy cost: ${finance.cost_e:.2f} (1e4$)")
+    print(f"  Tech cost: ${finance.cost_tech:.2f} (1e4$)")
+    print(f"  Profit: ${profit:.2f} (1e4$)")
     
     # Update state
-    state["finance"] = finance
+    model.current_step += 1
+    state["workflow_step"] = "finance_calculation"
+    state["model_step"] = model.current_step
+    state["components"]["finance"].update({
+        "profit": float(profit),
+        "revenue": float(finance.rev),
+        "energy_cost": float(finance.cost_e),
+        "tech_cost": float(finance.cost_tech)
+    })
     
-    print(f"[finance_step_faasr] Financial summary:")
-    print(f"  - Field revenue: ${field_revenue:.2f}")
-    print(f"  - Field costs: ${total_costs - pumping_cost:.2f}")
-    print(f"  - Pumping costs: ${pumping_cost:.2f}")
-    print(f"  - Total costs: ${total_costs:.2f}")
-    print(f"  - Net profit: ${net_profit:.2f}")
-    print(f"  - Profit margin: {profit_margin:.1f}%")
-    print(f"  - Water productivity: ${water_productivity:.2f}/mm")
+    print(" FINANCE STEP COMPLETED")
     
-    # Save and upload
-    with open("state.json", "w") as f:
-        json.dump(state, f, indent=2)
+    # Save
+    faasr_data["state"] = state
     
-    faasr_put_file(
-        server_name="S3",
-        local_folder="",
-        local_file="state.json",
-        remote_folder="pychamp-workflow",
-        remote_file="state.json"
-    )
+    with open(output1, "w") as f:
+        json.dump(faasr_data, f, indent=2)
     
-    print("[finance_step_faasr] Finance step complete!")
+    try:
+        faasr_put_file(
+            server_name="S3",
+            local_folder="",
+            local_file=output1,
+            remote_folder="pychamp-workflow",
+            remote_file=output1
+        )
+        print("Updated payload uploaded to S3")
+    except NameError:
+        print("Running locally - saved to file")
+
+if __name__ == "__main__":
+    finance_step_faasr()
