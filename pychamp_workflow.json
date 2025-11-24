@@ -50,7 +50,7 @@
       "InvokeNext": ["results"]
     },
     "results": {
-      "FunctionName": " results_step_faasr",
+      "FunctionName": "results_step_faasr",
       "FaaSServer": "GH",
       "Type": "Python",
       "Arguments": {
@@ -91,7 +91,7 @@
     "aquifer_step_faasr": "nirali112/FaaSr-workflow-pycharm",
     "field_step_faasr": "nirali112/FaaSr-workflow-pycharm",
     "finance_step_faasr": "nirali112/FaaSr-workflow-pycharm",
-    " results_step_faasr": "nirali112/FaaSr-workflow-pycharm"
+    "results_step_faasr": "nirali112/FaaSr-workflow-pycharm"
   },
   "LoggingDataStore": "S3",
   "FaaSrLog": "FaaSrLog",
