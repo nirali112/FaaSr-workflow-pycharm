@@ -6,7 +6,6 @@ Simulates crop growth and irrigation water use
 import sys
 import json
 import subprocess
-import numpy as np
 
 def install_dependencies():
     """Install required packages in FaaSr container"""
@@ -38,12 +37,13 @@ def field_step_faasr(output1="payload"):
         with open("payload", "r") as f:
             faasr_data = json.load(f)
     except Exception as e:
-        print(f"❌ Could not download payload: {e}")
+        print(f"Could not download payload: {e}")
         return
     
     install_dependencies()
     
     # Import after installation
+    import numpy as np
     from mesa import Model
     from mesa.time import RandomActivation
     from py_champ.components.field import Field
