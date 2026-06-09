@@ -10,7 +10,11 @@
         "end": "20260515",
         "location_name": "Corvallis, OR"
       },
-      "InvokeNext": ["ProcessPrecipitation", "ProcessTemperatureMin", "ProcessTemperatureMax"],
+      "InvokeNext": [
+        "ProcessPrecipitation",
+        "ProcessTemperatureMin",
+        "ProcessTemperatureMax"
+      ],
       "FaaSServer": "GH",
       "Type": "Python",
       "FunctionName": "get_nasa_power_data"
@@ -24,7 +28,9 @@
         "start": "2026-03-01",
         "end": "2026-05-01"
       },
-      "InvokeNext": ["PlotData"],
+      "InvokeNext": [
+        "PlotData"
+      ],
       "FaaSServer": "GH",
       "Type": "Python",
       "FunctionName": "compare_to_yearly_average"
@@ -38,7 +44,9 @@
         "start": "2026-03-01",
         "end": "2026-05-01"
       },
-      "InvokeNext": ["PlotData"],
+      "InvokeNext": [
+        "PlotData"
+      ],
       "FaaSServer": "GH",
       "Type": "Python",
       "FunctionName": "compare_to_yearly_average"
@@ -52,7 +60,9 @@
         "start": "2026-03-01",
         "end": "2026-05-01"
       },
-      "InvokeNext": ["PlotData"],
+      "InvokeNext": [
+        "PlotData"
+      ],
       "FaaSServer": "GH",
       "Type": "Python",
       "FunctionName": "compare_to_yearly_average"
@@ -77,7 +87,8 @@
       "FaaSType": "GitHubActions",
       "ActionRepoName": "FaaSr-workflow-pycharm",
       "Branch": "main",
-      "UserName": "nirali112"
+      "UserName": "nirali112",
+      "UseSecretStore": true
     }
   },
   "DataStores": {
@@ -97,13 +108,18 @@
   "FunctionInvoke": "GetData",
   "DefaultDataStore": "S3",
   "FunctionGitRepo": {
-    "get_nasa_power_data": "nirali112/FaaSr-NASA-Functions/NASAPowerVisualization/python",
-    "compare_to_yearly_average": "nirali112/FaaSr-NASA-Functions/NASAPowerVisualization/python",
-    "plot_weather_comparison": "nirali112/FaaSr-NASA-Functions/NASAPowerVisualization/python"
+    "get_nasa_power_data": "nirali112/FaaSr-NASA-Functions",
+    "compare_to_yearly_average": "nirali112/FaaSr-NASA-Functions",
+    "plot_weather_comparison": "nirali112/FaaSr-NASA-Functions"
   },
   "PyPIPackageDownloads": {
-    "compare_to_yearly_average": ["pandas"],
-    "plot_weather_comparison": ["pandas", "matplotlib"]
+    "compare_to_yearly_average": [
+      "pandas"
+    ],
+    "plot_weather_comparison": [
+      "pandas",
+      "matplotlib"
+    ]
   },
   "FaaSrLog": "FaaSrLog",
   "LoggingDataStore": "S3",
